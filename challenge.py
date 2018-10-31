@@ -43,6 +43,7 @@ scoreboard_tpl = """
 			<thead class="thead-inverse">
 				<tr>
 					<th>User ID</th>
+					<th>Name</th>
 					<th>c0</th>
 					<th>c1</th>
 					<th>c2</th>
@@ -70,7 +71,7 @@ scoreboard_tpl = """
 	    <script>
         $("#register-btn").click( function()
            {
-			showModal("Insert you email to register", "", 600, "register");
+			showModal("Insert your e-mail and name to register", "Registration format is [e-mail]|[name{1-20}] ex: user@test.com|First Last", 600, "register");
            }
         );
         $("#sendnumb3r-btn").click( function()
@@ -146,7 +147,7 @@ def c2(userid, num):
 		return solve(userid, "c2")
 
 def c3(userid, num):
-	x = binascii.hexlify("owasp".encode('utf8'))
+	x = binascii.hexlify("sectalks".encode('utf8'))
 	y = binascii.hexlify("telstra".encode('utf8'))
 	z = str(int(x[::-1] + y, 16) * 2018)
 	if(num == z):
@@ -252,14 +253,14 @@ def solve(userid, challenge):
 
 def create_db():
 	conn = sqlite3.connect('scoreboard.db') 
-	conn.execute("CREATE TABLE if not exists scoreboard (user_id INTEGER PRIMARY KEY, email TEXT NOT NULL UNIQUE,c0 INTEGER, c1 INTEGER, c2 INTEGER,c3 INTEGER,c4 INTEGER,c5 INTEGER,c6 INTEGER,c7 INTEGER,c8 INTEGER,c9 INTEGER)")
+	conn.execute("CREATE TABLE if not exists scoreboard (user_id INTEGER PRIMARY KEY, email TEXT NOT NULL UNIQUE, name TEXT NOT NULL, c0 INTEGER, c1 INTEGER, c2 INTEGER,c3 INTEGER,c4 INTEGER,c5 INTEGER,c6 INTEGER,c7 INTEGER,c8 INTEGER,c9 INTEGER)")
 	conn.commit()
 
 def scoreboard():
 	try:
 		conn = sqlite3.connect('scoreboard.db')
 		c = conn.cursor()
-		c.execute("SELECT user_id, c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, (c0+c1+c2+c3+c4+c5+c6+c7+c8+c9) as points FROM scoreboard ORDER BY points DESC")
+		c.execute("SELECT user_id, name, c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, (c0+c1+c2+c3+c4+c5+c6+c7+c8+c9) as points FROM scoreboard ORDER BY points DESC")
 		result = c.fetchall()
 		c.close()
 		output = template(scoreboard_tpl, rows=result)
@@ -285,30 +286,39 @@ def isValidEmail(email):
 			return True
 	return False
 
+def isValidName(name):
+	if len(name) > 1 and len(name) < 20:
+		if re.match("[a-zA-Z0-9\s]{1,20}", name) != None:
+			return True
+	return False
+
 
 #####################
 ###### MAPPING ######
 #####################
 
 # Function used to register a new user 
-# The format is http://x.x.x.x/register/[email]
-# Ex: Register a new user with the e-mail user@test.com
-#		http://x.x.x.x/register/user@test.com
+# The format is http://x.x.x.x/register/[email]|[name]
+# Ex: Register a new user with the e-mail user@test.com and name First Last
+#		http://x.x.x.x/register/user@test.com|First Last
 @route('/register/<email>', method='GET')
 def register(email):
+	[email, name] = email.split("|")
 	if not isValidEmail(email):
 		return '{"error" : "Invalid email... Please insert a valid e-mail!"}'
+	if not isValidName(name):
+		return '{"error" : "Invalid name... Please insert a valid name!"}'
 	user_id = isUserRegistered(0, email)
 	if not user_id:
 		conn = sqlite3.connect('scoreboard.db') 
 		c = conn.cursor()
-		c.execute("""INSERT INTO scoreboard (email, c0, c1, c2, c3, c4, c5, c6, c7, c8, c9) VALUES (?,?,?,?,?,?,?,?,?,?,?)""", (email,0,0,0,0,0,0,0,0,0,0,))
+		c.execute("""INSERT INTO scoreboard (email, name, c0, c1, c2, c3, c4, c5, c6, c7, c8, c9) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", (email,name,0,0,0,0,0,0,0,0,0,0,))
 		new_id = c.lastrowid
 		conn.commit()
 		c.close()
 		return '{"success" : "Registered with success, your User ID is %s"}' % new_id
 	else:
-		return '{"error" : "User already registered! user ID: %s"}' % user_id
+		return '{"error" : "User already registered! User ID: %s"}' % user_id
 
 
 # Function used to execute a guess 
@@ -352,6 +362,6 @@ def mistake500(code):
     return '{"error" : "OOOOOPS... something went really wrong :-/"}'
 
 if __name__ == "__main__":
-    run(host="127.0.0.1", port=8080, reloader=True)
+    run(host="127.0.0.1", port=9090, reloader=True)
 else:
     application = default_app()
