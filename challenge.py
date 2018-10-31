@@ -5,6 +5,7 @@ https://github.com/pimps/tnumb3rs
 """
 
 import sys
+import inspect
 import sqlite3
 import binascii
 from bottle import route, run, debug, template, request, static_file, error
@@ -28,6 +29,15 @@ scoreboard_tpl = """
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/7.28.5/sweetalert2.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/7.28.5/sweetalert2.min.css">
+	<style>
+	.swal2-modal pre {
+		  background: #49483e;
+		  color: #f7f7f7;
+		  padding: 10px;
+		  font-size: 14px;
+		  text-align: left;
+		}
+	</style>
 	</head>
 	<body>
 	<div class="container">
@@ -44,16 +54,16 @@ scoreboard_tpl = """
 				<tr>
 					<th>User ID</th>
 					<th>Name</th>
-					<th>c0</th>
-					<th>c1</th>
-					<th>c2</th>
-					<th>c3</th>
-					<th>c4</th>
-					<th>c5</th>
-					<th>c6</th>
-					<th>c7</th>
-					<th>c8</th>
-					<th>c9</th>
+					<th><button id="0" type="button" class="btn btn-info">c0</button></th>
+					<th><button id="1" type="button" class="btn btn-info">c1</button></th>
+					<th><button id="2" type="button" class="btn btn-info">c2</button></th>
+					<th><button id="3" type="button" class="btn btn-info">c3</button></th>
+					<th><button id="4" type="button" class="btn btn-info">c4</button></th>
+					<th><button id="5" type="button" class="btn btn-info">c5</button></th>
+					<th><button id="6" type="button" class="btn btn-info">c6</button></th>
+					<th><button id="7" type="button" class="btn btn-info">c7</button></th>
+					<th><button id="8" type="button" class="btn btn-info">c8</button></th>
+					<th><button id="9" type="button" class="btn btn-info">c9</button></th>
 					<th>Points</th>
 				</tr>
 			</thead>
@@ -69,21 +79,35 @@ scoreboard_tpl = """
 		</table>
 	</div>
 	    <script>
+	    function getChallengeDesc(id) {
+		    return $.ajax({
+		        type: "GET",
+		        url: '/challenge/'+id,
+		        async: false
+		    }).responseText;
+		}
+	    $(".btn.btn-info").click( function()
+           {
+            var id = $(this).attr('id');
+            var chall_desc = getChallengeDesc(id);
+			showModal("Challenge " + id, chall_desc + "Numb3r format is [user_id{6}]["+id+"][numb3r] => ex: 000037"+id+"1337", 900, "execute");
+           }
+        );
         $("#register-btn").click( function()
            {
-			showModal("Insert your e-mail and name to register", "Registration format is [e-mail]|[name{1-20}] ex: user@test.com|First Last", 600, "register");
+			showModal("Insert your e-mail and name to register", "Registration format is [e-mail]|[name{1-20}] ex: user@test.com|nickname", 600, "register");
            }
         );
         $("#sendnumb3r-btn").click( function()
            {
-            showModal("Insert a Numb3r", "Numb3r format is [user_id][chall_id][numb3r] => [000037][0][1337] => ex: 00003701337", 900, "execute");
+            showModal("Insert a Numb3r", "Numb3r format is [user_id{6}][chall_id][numb3r] => [000037][0][1337] => ex: 00003701337", 900, "execute");
            }
         );
         function showModal(title, description, width, api){
         	swal({
 			  title: title,
-			  text: description,
 			  input: 'text',
+			  html: description,
 			  width: width,
 			  inputAttributes: {
 			    autocapitalize: 'off'
@@ -147,7 +171,7 @@ def c2(userid, num):
 		return solve(userid, "c2")
 
 def c3(userid, num):
-	x = binascii.hexlify("sectalks".encode('utf8'))
+	x = binascii.hexlify("TNumb3rs".encode('utf8'))
 	y = binascii.hexlify("telstra".encode('utf8'))
 	z = str(int(x[::-1] + y, 16) * 2018)
 	if(num == z):
@@ -343,6 +367,11 @@ def source():
 	with open(__file__) as f:
 		source = f.read()
 	return "<pre style='font-family: Lucida'>" + html.escape(source) + "</pre>"
+
+@route('/challenge/<chall_id:re:[0-9]>', method='GET')
+def source(chall_id):
+	source = inspect.getsource(getattr(sys.modules[__name__], "c%s" % chall_id))
+	return "<pre style='font-family: Lucida'><code>" + html.escape(source) + "</code></pre>"
 
 # Function used to print the Scoreboard
 @route('/', method='GET')
