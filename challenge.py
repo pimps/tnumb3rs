@@ -288,7 +288,7 @@ def isValidEmail(email):
 
 def isValidName(name):
 	if len(name) > 1 and len(name) < 20:
-		if re.match("[a-zA-Z0-9\s]{1,20}", name) != None:
+		if re.match("^[\w\s]+$", name) != None:
 			return True
 	return False
 
