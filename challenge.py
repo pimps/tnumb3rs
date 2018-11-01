@@ -25,9 +25,9 @@ scoreboard_tpl = """
 	<!-- Bootstrap 4 -->
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/7.28.5/sweetalert2.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/7.28.5/sweetalert2.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/7.28.5/sweetalert2.min.css">
 	<style>
 	.swal2-modal pre {
@@ -78,76 +78,76 @@ scoreboard_tpl = """
 			</tbody>
 		</table>
 	</div>
-	    <script>
-	    function getChallengeDesc(id) {
-		    return $.ajax({
-		        type: "GET",
-		        url: '/challenge/'+id,
-		        async: false
-		    }).responseText;
+	<script>
+		function getChallengeDesc(id) {
+			return $.ajax({
+				type: "GET",
+				url: '/challenge/'+id,
+				async: false
+			}).responseText;
 		}
-	    $(".btn.btn-info").click( function()
-           {
-            var id = $(this).attr('id');
-            var chall_desc = getChallengeDesc(id);
+		$(".btn.btn-info").click( function()
+		   {
+			var id = $(this).attr('id');
+			var chall_desc = getChallengeDesc(id);
 			showModal("Challenge " + id, chall_desc + "Numb3r format is [user_id{6}]["+id+"][numb3r] => ex: 000037"+id+"1337", 900, "execute");
-           }
-        );
-        $("#register-btn").click( function()
-           {
+		   }
+		);
+		$("#register-btn").click( function()
+		   {
 			showModal("Insert your e-mail and name to register", "Registration format is [e-mail]|[name{1-20}] ex: user@test.com|nickname", 600, "register");
-           }
-        );
-        $("#sendnumb3r-btn").click( function()
-           {
-            showModal("Insert a Numb3r", "Numb3r format is [user_id{6}][chall_id][numb3r] => [000037][0][1337] => ex: 00003701337", 900, "execute");
-           }
-        );
-        function showModal(title, description, width, api){
-        	swal({
-			  title: title,
-			  input: 'text',
-			  html: description,
-			  width: width,
-			  inputAttributes: {
-			    autocapitalize: 'off'
-			  },
-			  showCancelButton: true,
-			  confirmButtonText: 'Send',
-			  showLoaderOnConfirm: true,
-			  preConfirm: (input) => {
-			    return fetch(`/${api}/${input}`)
-			      .then(response => {
-			        if (!response.ok) {
-			          throw new Error(response.statusText)
-			        }
-			        return response.json()
-			      })
-			      .catch(error => {
-			        swal.showValidationMessage(
-			          'Numb3r failed... Try Again...'
-			        )
-			      })
-			  },
-			  allowOutsideClick: () => !swal.isLoading()
-			}).then((result) => {
-				if (result.value){
-					if (result.value.error){
-					    swal({
-					      type: 'error',
-					      text: result.value.error,
-					    })
-					} else {
-					    swal({
-					      type: 'success',
-					      text: result.value.success,
-					    })
+		   }
+		);
+		$("#sendnumb3r-btn").click( function()
+		   {
+		    showModal("Insert a Numb3r", "Numb3r format is [user_id{6}][chall_id][numb3r] => [000037][0][1337] => ex: 00003701337", 900, "execute");
+		   }
+		);
+		function showModal(title, description, width, api){
+			swal({
+				  title: title,
+				  input: 'text',
+				  html: description,
+				  width: width,
+				  inputAttributes: {
+				    autocapitalize: 'off'
+				  },
+				  showCancelButton: true,
+				  confirmButtonText: 'Send',
+				  showLoaderOnConfirm: true,
+				  preConfirm: (input) => {
+				    return fetch(`/${api}/${input}`)
+				      .then(response => {
+					if (!response.ok) {
+					  throw new Error(response.statusText)
 					}
-				}
-			})
+					return response.json()
+				      })
+				      .catch(error => {
+					swal.showValidationMessage(
+					  'Numb3r failed... Try Again...'
+					)
+				      })
+				  },
+				  allowOutsideClick: () => !swal.isLoading()
+				}).then((result) => {
+					if (result.value){
+						if (result.value.error){
+						    swal({
+						      type: 'error',
+						      text: result.value.error,
+						    })
+						} else {
+						    swal({
+						      type: 'success',
+						      text: result.value.success,
+						    })
+						}
+					}
+				})
 
-        }
-    </script>
+		}
+	</script>
 	</body>
 	</html>
 """
@@ -368,6 +368,8 @@ def source():
 		source = f.read()
 	return "<pre style='font-family: Lucida'>" + html.escape(source) + "</pre>"
 
+# Function used to print the source code of a challenge
+# The format is http://x.x.x.x/challenge/[id]
 @route('/challenge/<chall_id:re:[0-9]>', method='GET')
 def source(chall_id):
 	source = inspect.getsource(getattr(sys.modules[__name__], "c%s" % chall_id))
