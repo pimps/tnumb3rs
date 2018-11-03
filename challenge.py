@@ -141,7 +141,9 @@ scoreboard_tpl = """
 						    swal({
 						      type: 'success',
 						      text: result.value.success,
-						    })
+						    }).then(function(){ 
+							location.reload();
+					   		});
 						}
 					}
 				})
